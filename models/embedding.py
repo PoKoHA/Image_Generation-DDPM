@@ -21,10 +21,8 @@ class TimeEmbedding(nn.Module):
         half_dim = self.n_channels // 8
         embedding = math.log(10_000) / (half_dim - 1)
         embedding = torch.exp(torch.arange(half_dim, device=t.device) * -embedding)
-        embedding = t[:, None] * embedding[None, :] # todo print shape
+        embedding = t[:, None] * embedding[None, :] # [1, 1] / [1, 1, 32]
         embedding = torch.cat([embedding.sin(), embedding.cos()], dim=1)
-
         embedding = self.act(self.linear_1(embedding))
         embedding = self.linear_2(embedding)
-
         return embedding

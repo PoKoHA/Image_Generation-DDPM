@@ -62,7 +62,7 @@ class UNet(nn.Module):
                 down.append(Downsample(in_channels))
 
         self.down = nn.ModuleList(down)
-
+        print("down: ", self.down)
         # Unet Bridge
         self.middle = MiddleBlock(out_channels, n_channels * 4)
 
@@ -82,6 +82,7 @@ class UNet(nn.Module):
 
         # Combine the set of modules
         self.up = nn.ModuleList(up)
+        print("A", self.up)
 
         # Last Conv Layer
         self.norm = nn.GroupNorm(8, n_channels)
@@ -104,19 +105,22 @@ class UNet(nn.Module):
         for down in self.down:
             outputs = down(outputs, t)
             encoder.append(outputs)
-
+        print("A", len(encoder))
         # Middle (bottom)
         outputs = self.middle(outputs, t)
 
         # Second half of U-Net
+        i = 0
         for up in self.up:
             if isinstance(up, Upsample):
                 outputs = up(outputs, t)
             else:
                 # Get the skip connection from first half of U-Net and concatenate
                 enc_out = encoder.pop()
+                print(i, "e", enc_out.size(), "u", outputs.size())
                 outputs = torch.cat([outputs, enc_out], dim=1)
                 outputs = up(outputs, t)
+            i += 1
 
         # Final normalization and convolution
         return self.final(self.act(self.norm(outputs)))

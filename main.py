@@ -43,7 +43,7 @@ parser.add_argument('-b', '--batch-size', default=64, type=int,
                          'batch size of all GPUs on the current node when '
                          'using Data Parallel or Distributed Data Parallel')
 
-parser.add_argument('--lr', '--learning-rate', default=2e-5, type=float,
+parser.add_argument('--lr', '--learning-rate', default=1e-4, type=float,
                     metavar='LR', help='initial learning rate', dest='lr')
 parser.add_argument('--momentum', default=0.9, type=float, metavar='M',
                     help='momentum')
@@ -113,10 +113,10 @@ def main_worker(gpu, ngpus_per_node, args):
     summary = SummaryWriter()
 
     # Options
-    image_channels = 1
-    image_size = 32
-    n_channels = 64
-    channels_multipliers = [1, 2, 2, 4]
+    image_channels = 3
+    image_size = 128
+    n_channels = 32
+    channels_multipliers = [1, 2, 4, 4]
     is_attention = [False, False, True, True]
 
     if args.gpu is not None:
@@ -136,6 +136,7 @@ def main_worker(gpu, ngpus_per_node, args):
     eps_model = UNet(img_channels=image_channels,
                      n_channels=n_channels,
                      ch_mults=channels_multipliers,
+                     n_blocks=3,
                      is_attn=is_attention).cuda(args.gpu)
     diffusion = DenoiseDiffusion(eps_model=eps_model,
                                  n_steps=args.steps,
@@ -146,10 +147,13 @@ def main_worker(gpu, ngpus_per_node, args):
     optimizer = torch.optim.Adam(eps_model.parameters(), lr=args.lr)
 
     # Dataset / Dataloader
-    train_dataset = datasets.MNIST(
-        root="./dataset", train=True, download=True,
+    train_dataset = datasets.ImageFolder(
+        root="./dataset/celeba_hq",
         transform=transforms.Compose([transforms.Resize(image_size),
-                                      transforms.ToTensor()]))
+                                      transforms.ToTensor(),
+                                      transforms.Normalize((0.5, 0.5 ,0.5),
+                                                           (0.5, 0.5, 0.5))]
+                                     ))
     train_loader = torch.utils.data.DataLoader(
         train_dataset, batch_size=args.batch_size, shuffle=True, num_workers=args.workers, pin_memory=True)
 

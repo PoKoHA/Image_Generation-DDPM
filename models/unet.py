@@ -58,11 +58,12 @@ class UNet(nn.Module):
             for _ in range(n_blocks):
                 down.append(DownBlock(in_channels, out_channels, n_channels * 4, is_attn[i]))
                 in_channels = out_channels
+
             if i < n_resolutions - 1: # 마지막만 빼고 모두 Resolution DownSampling
                 down.append(Downsample(in_channels))
 
         self.down = nn.ModuleList(down)
-        print("down: ", self.down)
+        # print("down: ", self.down)
         # Unet Bridge
         self.middle = MiddleBlock(out_channels, n_channels * 4)
 
@@ -82,7 +83,8 @@ class UNet(nn.Module):
 
         # Combine the set of modules
         self.up = nn.ModuleList(up)
-        print("A", self.up)
+        # print("middle", self.middle)
+        # print("Up", self.up)
 
         # Last Conv Layer
         self.norm = nn.GroupNorm(8, n_channels)
@@ -98,16 +100,18 @@ class UNet(nn.Module):
 
         # Get image projection
         outputs = self.proj(inputs)
-
+        # print("o", outputs.size())
         # `h` will store outputs at each resolution for skip connection
         encoder = [outputs]
         # First half of U-Net
         for down in self.down:
             outputs = down(outputs, t)
+            # print(outputs.size())
             encoder.append(outputs)
-        print("A", len(encoder))
+        # print("A", len(encoder))
         # Middle (bottom)
         outputs = self.middle(outputs, t)
+        # print(outputs.size())
 
         # Second half of U-Net
         i = 0
@@ -117,10 +121,29 @@ class UNet(nn.Module):
             else:
                 # Get the skip connection from first half of U-Net and concatenate
                 enc_out = encoder.pop()
-                print(i, "e", enc_out.size(), "u", outputs.size())
+                print(i, "u", outputs.size(), "e", enc_out.size())
                 outputs = torch.cat([outputs, enc_out], dim=1)
                 outputs = up(outputs, t)
+            # print(outputs.size())
             i += 1
 
         # Final normalization and convolution
         return self.final(self.act(self.norm(outputs)))
+
+
+if __name__ == "__main__":
+    image_channels = 1
+    image_size = 32
+    n_channels = 64
+    channels_multipliers = [1, 2, 2, 4]
+    is_attention = [False, False, True, True]
+
+    m = UNet(img_channels=image_channels,
+             n_channels=n_channels,
+             ch_mults=channels_multipliers,
+             n_blocks=1,
+             is_attn=is_attention).cuda()
+
+    t = torch.randn(2, 1, 32, 32).cuda()
+    ta = torch.randint(0, 1000, (2,), device=t.device, dtype=torch.long)
+    print(m(t, ta).size())

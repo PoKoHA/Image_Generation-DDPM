@@ -31,7 +31,6 @@ gradually adds Gaussian noise to the data according to a variance schedule β1, 
 pθ(x0:T ) is called the reverse process, and it is defined as a Markov chain with learned Gaussian
 transitions starting at p(xT ) = N (xT ; 0, I)**
 
-
 # Reference
 
 - [**논문 설명 1**](https://developers-shack.tistory.com/8)
@@ -39,3 +38,12 @@ transitions starting at p(xT ) = N (xT ; 0, I)**
 - [**Official Code**](https://github.com/hojonathanho/diffusion)
 - [**참고 Code**](https://github.com/labmlai/annotated_deep_learning_paper_implementations/blob/8af24da2dd39a9a87482a4d18c2dc829bbd3fd47/labml_nn/diffusion/ddpm/__init__.py#L172)
 
+# Implement
+
+**Dataset: Celeb_hq ( Param: 227M )**
+ 
+> **python main.py --gpu 0 --batch-size 1**
+
+
+# Result
+~~추후 기재~~

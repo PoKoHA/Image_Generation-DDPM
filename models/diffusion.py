@@ -82,6 +82,3 @@ class DenoiseDiffusion(nn.Module):
         eps_theta = self.eps_model(xt, t)
 
         return noise, eps_theta
-
-
-

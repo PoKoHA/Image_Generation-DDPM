@@ -90,6 +90,7 @@ class UNet(nn.Module):
         self.norm = nn.GroupNorm(8, n_channels)
         self.act = Swish()
         self.final = nn.Conv2d(in_channels, img_channels, kernel_size=(3, 3), padding=(1, 1))
+        # print(self.down, self.middle, self.up)
 
     def forward(self, inputs: torch.Tensor, t: torch.Tensor):
         """
@@ -121,7 +122,8 @@ class UNet(nn.Module):
             else:
                 # Get the skip connection from first half of U-Net and concatenate
                 enc_out = encoder.pop()
-                print(i, "u", outputs.size(), "e", enc_out.size())
+                # print(i, "u", outputs.size(), "e", enc_out.size())
+                # print(i, outputs.size(), enc_out.size())
                 outputs = torch.cat([outputs, enc_out], dim=1)
                 outputs = up(outputs, t)
             # print(outputs.size())
@@ -132,7 +134,7 @@ class UNet(nn.Module):
 
 
 if __name__ == "__main__":
-    image_channels = 1
+    image_channels = 3
     image_size = 32
     n_channels = 64
     channels_multipliers = [1, 2, 2, 4]
@@ -141,9 +143,11 @@ if __name__ == "__main__":
     m = UNet(img_channels=image_channels,
              n_channels=n_channels,
              ch_mults=channels_multipliers,
-             n_blocks=1,
+             n_blocks=2,
              is_attn=is_attention).cuda()
 
-    t = torch.randn(2, 1, 32, 32).cuda()
+    t = torch.randn(2, 3, 32, 32).cuda()
     ta = torch.randint(0, 1000, (2,), device=t.device, dtype=torch.long)
+    param = sum(p.numel() for p in m.parameters() if p.requires_grad)
+    print("Total Param: ", param)
     print(m(t, ta).size())

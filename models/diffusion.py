@@ -80,5 +80,6 @@ class DenoiseDiffusion(nn.Module):
         xt = self.q_sample(inputs, t, eps=noise)
         # eps_theta 구하기 (paper Eq.14)
         eps_theta = self.eps_model(xt, t)
+        # print(sum(p.numel() for p in self.eps_model.parameters() if p.requires_grad))
 
         return noise, eps_theta

@@ -40,10 +40,11 @@ transitions starting at p(xT ) = N (xT ; 0, I)**
 
 # Implement
 
-**Dataset: Celeb_hq ( Param: 227M )**
- 
+**Dataset: Celeb_hq**
 > **python main.py --gpu 0 --batch-size 1**
 
-
 # Result
-~~추후 기재~~
+
+- **25 epoch**
+
+![1](https://user-images.githubusercontent.com/76771847/159080228-2609ac86-fed8-476c-ab47-f0d27a6c0ce2.png)
